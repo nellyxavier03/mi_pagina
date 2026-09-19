@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MediaFeed - Dark & Gold Social Feed</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0a0a0a',
+                        darkCard: '#141414',
+                        darkBorder: '#262626',
+                        yellowAccent: '#FFE600',
+                        yellowHover: '#FFD700',
+                        yellowDark: '#B8A500'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0a0a0a;
+            color: #f5f5f5;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Glows & Lighting Effects */
+        .icon-glow-white {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .icon-glow-white:hover, .icon-glow-white:focus, .icon-glow-active {
+            filter: drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.95)) drop-shadow(0px 0px 18px rgba(255, 255, 255, 0.6));
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .yellow-glow {
+            box-shadow: 0 0 20px rgba(255, 230, 0, 0.25);
+        }
+
+        .story-border-yellow {
+            background: linear-gradient(135deg, #FFE600 0%, #FFB800 50%, #FFFFFF 100%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 230, 0, 0.3);
+            border-radius: 9999px;
+        }
+
+        @keyframes heartPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.35); filter: drop-shadow(0 0 12px rgba(255, 255, 255, 1)); }
+            100% { transform: scale(1); }
+        }
+        .heart-glow-anim {
+            animation: heartPulse 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-100 min-h-screen pb-20 lg:pb-8 selection:bg-yellowAccent selection:text-black">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b border-darkBorder transition-colors">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl story-border-yellow p-0.5 flex items-center justify-center yellow-glow">
+                    <div class="w-full h-full bg-black rounded-[10px] flex items-center justify-center">
+                        <i data-lucide="camera" class="w-5 h-5 text-yellowAccent"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-white">
+                        MEDIA<span class="text-yellowAccent">FEED</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Header Controls & Role Switcher -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Mode Switcher -->
+                <div class="bg-darkCard p-1 rounded-2xl flex items-center border border-darkBorder">
+                    <button id="btn-visitor-mode" onclick="switchRole('visitor')" class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all">
+                        <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                        <span>Visitante</span>
+                    </button>
+                    <button id="btn-creator-mode" onclick="switchRole('creator')" class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                        <span>Creador</span>
+                    </button>
+                </div>
+
+                <!-- Creator Add Post Button -->
+                <button id="btn-new-post-nav" onclick="openNewPostModal()" class="hidden bg-yellowAccent hover:bg-yellowHover text-black p-2 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition flex items-center space-x-2 yellow-glow">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline uppercase tracking-wider">Publicar</span>
+                </button>
+
+                <!-- Share Page Link with White Glow -->
+                <button onclick="copyChannelLink()" class="p-2 text-gray-300 hover:text-white bg-darkCard border border-darkBorder rounded-xl icon-glow-white" title="Copiar enlace de esta página">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Feed -->
+    <main class="max-w-5xl mx-auto px-2 sm:px-4 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        
+        <!-- Left Content Column (Feed & Highlights) -->
+        <section class="lg:col-span-2 space-y-5 sm:space-y-6">
+
+            <!-- Creator Banner Banner -->
+            <div id="creator-notice" class="hidden bg-gradient-to-r from-yellowAccent/10 via-darkCard to-black border border-yellowAccent/40 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-yellowAccent/20 rounded-xl text-yellowAccent">
+                        <i data-lucide="crown" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-bold text-yellowAccent">Modo Creador Activo</h3>
+                        <p class="text-[11px] text-gray-400">Control absoluto: publica fotos/videos, borra publicaciones y gestiona tu feed.</p>
+                    </div>
+                </div>
+                <button onclick="openStatsModal()" class="px-3 py-1.5 bg-yellowAccent hover:bg-yellowHover text-black rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow">
+                    <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Métricas</span>
+                </button>
+            </div>
+
+            <!-- Stories / Highlights Reel -->
+            <div class="bg-darkCard border border-darkBorder rounded-2xl p-3 sm:p-4 flex items-center space-x-4 overflow-x-auto custom-scrollbar">
+                <!-- Creator Quick Upload -->
+                <div class="flex flex-col items-center space-y-1 flex-shrink-0 cursor-pointer" onclick="openNewPostModal()">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-dashed border-yellowAccent/80 flex items-center justify-center bg-black hover:bg-darkCard transition icon-glow-white">
+                        <i data-lucide="plus" class="w-6 h-6 text-yellowAccent"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-gray-300">Nuevo</span>
+                </div>
+                <!-- Mock Highlights -->
+                <div class="flex flex-col items-center space-y-1 flex-shrink-0">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full story-border-yellow p-0.5 cursor-pointer hover:scale-105 transition">
+                        <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=150&auto=format&fit=crop&q=80" class="w-full h-full rounded-full object-cover border-2 border-black" alt="Highlight">
+                    </div>
+                    <span class="text-[11px] font-medium text-gray-400">Galería</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1 flex-shrink-0">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full story-border-yellow p-0.5 cursor-pointer hover:scale-105 transition">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=150&auto=format&fit=crop&q=80" class="w-full h-full rounded-full object-cover border-2 border-black" alt="Highlight">
+                    </div>
+                    <span class="text-[11px] font-medium text-gray-400">Viajes</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1 flex-shrink-0">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full story-border-yellow p-0.5 cursor-pointer hover:scale-105 transition">
+                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=150&auto=format&fit=crop&q=80" class="w-full h-full rounded-full object-cover border-2 border-black" alt="Highlight">
+                    </div>
+                    <span class="text-[11px] font-medium text-gray-400">Proyectos</span>
+                </div>
+            </div>
+
+            <!-- Feed Post List Container -->
+            <div id="posts-feed" class="space-y-6">
+                <!-- Posts populated dynamically -->
+            </div>
+
+            <!-- Empty Feed State -->
+            <div id="empty-feed-state" class="hidden bg-darkCard border border-darkBorder rounded-3xl p-10 text-center space-y-4">
+                <div class="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto text-yellowAccent border border-darkBorder">
+                    <i data-lucide="image-off" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-extrabold text-white">No hay publicaciones</h3>
+                    <p class="text-xs text-gray-400 max-w-xs mx-auto mt-1">El canal aún no tiene publicaciones. ¡Cambia a modo Creador y comparte la primera!</p>
+                </div>
+                <button onclick="openNewPostModal()" class="px-5 py-2.5 bg-yellowAccent hover:bg-yellowHover text-black rounded-xl text-xs font-bold transition inline-flex items-center space-x-2 yellow-glow">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Crear Publicación</span>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Right Sidebar (Profile Info & Details) -->
+        <aside class="space-y-6 hidden lg:block">
+            
+            <!-- Channel Info Card -->
+            <div class="bg-darkCard border border-darkBorder rounded-3xl p-5 space-y-4 sticky top-20">
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <img id="profile-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80" class="w-14 h-14 rounded-full object-cover ring-2 ring-yellowAccent" alt="Creator Profile">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-yellowAccent border-2 border-black rounded-full"></span>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-1.5">
+                            <h2 class="font-extrabold text-white text-base">Canal Oficial</h2>
+                            <i data-lucide="badge-check" class="w-4 h-4 text-yellowAccent fill-yellowAccent/20"></i>
+                        </div>
+                        <p class="text-xs text-gray-400">@creador_contenido</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-300 leading-relaxed">
+                    ¡Bienvenido a mi espacio exclusivo! Aquí comparto mi portafolio multimedia. Reacciona, da me gusta y deja tus comentarios.
+                </p>
+
+                <!-- Stats Bar -->
+                <div class="grid grid-cols-3 gap-2 py-3 border-y border-darkBorder text-center">
+                    <div>
+                        <span id="stat-posts-count" class="block font-black text-sm text-yellowAccent">0</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Posts</span>
+                    </div>
+                    <div>
+                        <span id="stat-likes-count" class="block font-black text-sm text-yellowAccent">0</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Likes</span>
+                    </div>
+                    <div>
+                        <span id="stat-comments-count" class="block font-black text-sm text-yellowAccent">0</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Comentarios</span>
+                    </div>
+                </div>
+
+                <button onclick="copyChannelLink()" class="w-full py-2.5 bg-black hover:bg-gray-900 text-yellowAccent border border-yellowAccent/30 hover:border-yellowAccent rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 icon-glow-white">
+                    <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                    <span>Copiar Enlace del Canal</span>
+                </button>
+            </div>
+
+            <!-- Rules Card -->
+            <div class="bg-darkCard/50 border border-darkBorder rounded-2xl p-4 text-xs text-gray-400 space-y-2">
+                <div class="flex items-center space-x-2 text-yellowAccent font-bold">
+                    <i data-lucide="zap" class="w-4 h-4"></i>
+                    <span>Sin Chats ni Distracciones</span>
+                </div>
+                <p class="text-[11px] leading-relaxed">
+                    Página optimizada para la interacción limpia de tus clientes únicamente en tus publicaciones.
+                </p>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Modal: New Post Upload (Creator Only) -->
+    <div id="modal-new-post" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-darkCard border border-darkBorder w-full max-w-md rounded-3xl overflow-hidden shadow-2xl space-y-4">
+            <div class="p-4 border-b border-darkBorder flex items-center justify-between">
+                <h3 class="font-extrabold text-base flex items-center space-x-2 text-white">
+                    <i data-lucide="plus-square" class="w-5 h-5 text-yellowAccent"></i>
+                    <span>Crear Publicación</span>
+                </h3>
+                <button onclick="closeNewPostModal()" class="p-1 rounded-full text-gray-400 hover:text-white icon-glow-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="form-new-post" onsubmit="handleCreatePost(event)" class="p-5 space-y-4">
+                <!-- Media Type Switch -->
+                <div class="flex bg-black p-1 rounded-xl border border-darkBorder">
+                    <button type="button" id="type-btn-image" onclick="setMediaType('image')" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-yellowAccent text-black transition">Imagen</button>
+                    <button type="button" id="type-btn-video" onclick="setMediaType('video')" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-gray-400 transition">Video</button>
+                </div>
+
+                <!-- URL Input -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1">URL de Imagen o Video MP4</label>
+                    <input type="url" id="post-media-url" required placeholder="https://ejemplo.com/imagen.jpg" class="w-full bg-black border border-darkBorder rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-yellowAccent transition">
+                </div>
+
+                <!-- Preset Options -->
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 mb-1.5">Imágenes de prueba rápida:</label>
+                    <div class="flex space-x-2 overflow-x-auto custom-scrollbar pb-1">
+                        <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600&auto=format&fit=crop&q=80" onclick="usePresetUrl(this.src)" class="w-12 h-12 rounded-xl object-cover cursor-pointer border border-darkBorder hover:border-yellowAccent hover:scale-105 transition" title="Seleccionar">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80" onclick="usePresetUrl(this.src)" class="w-12 h-12 rounded-xl object-cover cursor-pointer border border-darkBorder hover:border-yellowAccent hover:scale-105 transition" title="Seleccionar">
+                        <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80" onclick="usePresetUrl(this.src)" class="w-12 h-12 rounded-xl object-cover cursor-pointer border border-darkBorder hover:border-yellowAccent hover:scale-105 transition" title="Seleccionar">
+                        <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80" onclick="usePresetUrl(this.src)" class="w-12 h-12 rounded-xl object-cover cursor-pointer border border-darkBorder hover:border-yellowAccent hover:scale-105 transition" title="Seleccionar">
+                    </div>
+                </div>
+
+                <!-- Caption -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1">Descripción / Pie de foto</label>
+                    <textarea id="post-caption" rows="3" required placeholder="Escribe el texto de tu publicación..." class="w-full bg-black border border-darkBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellowAccent transition resize-none"></textarea>
+                </div>
+
+                <!-- Tags -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1">Etiquetas (separadas por coma)</label>
+                    <input type="text" id="post-tags" placeholder="negocio, foto, premium" class="w-full bg-black border border-darkBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellowAccent transition">
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-yellowAccent hover:bg-yellowHover text-black rounded-xl text-xs font-black transition yellow-glow uppercase tracking-wider">
+                    Publicar Ahora
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Share Link -->
+    <div id="modal-share" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-darkCard border border-darkBorder w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-5 space-y-4 text-center">
+            <div class="w-12 h-12 bg-yellowAccent/10 text-yellowAccent rounded-2xl flex items-center justify-center mx-auto border border-yellowAccent/30">
+                <i data-lucide="share-2" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-base text-white">Compartir Publicación</h3>
+                <p class="text-xs text-gray-400 mt-1">Comparte este enlace directo con tus clientes.</p>
+            </div>
+            
+            <div class="bg-black p-2.5 rounded-xl flex items-center justify-between border border-darkBorder">
+                <span id="share-link-input" class="text-xs text-yellowAccent font-mono truncate pr-2"></span>
+                <button onclick="copyCurrentShareLink()" class="px-3 py-1.5 bg-yellowAccent hover:bg-yellowHover text-black rounded-lg text-xs font-bold transition flex-shrink-0">
+                    Copiar
+                </button>
+            </div>
+
+            <button onclick="closeShareModal()" class="w-full py-2 bg-darkCard hover:bg-black text-gray-300 rounded-xl text-xs font-bold transition border border-darkBorder">
+                Cerrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Stats View -->
+    <div id="modal-stats" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-darkCard border border-darkBorder w-full max-w-md rounded-3xl overflow-hidden shadow-2xl p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-darkBorder pb-3">
+                <h3 class="font-extrabold text-base flex items-center space-x-2 text-yellowAccent">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                    <span>Estadísticas del Canal</span>
+                </h3>
+                <button onclick="closeStatsModal()" class="p-1 text-gray-400 hover:text-white icon-glow-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-black p-4 rounded-2xl border border-darkBorder">
+                    <span class="text-xs text-gray-400 block mb-1">Total Likes</span>
+                    <span id="modal-stat-likes" class="text-2xl font-black text-yellowAccent">0</span>
+                </div>
+                <div class="bg-black p-4 rounded-2xl border border-darkBorder">
+                    <span class="text-xs text-gray-400 block mb-1">Comentarios</span>
+                    <span id="modal-stat-comments" class="text-2xl font-black text-white">0</span>
+                </div>
+                <div class="bg-black p-4 rounded-2xl border border-darkBorder">
+                    <span class="text-xs text-gray-400 block mb-1">Reacciones Emojis</span>
+                    <span id="modal-stat-reactions" class="text-2xl font-black text-yellowAccent">0</span>
+                </div>
+                <div class="bg-black p-4 rounded-2xl border border-darkBorder">
+                    <span class="text-xs text-gray-400 block mb-1">Publicaciones</span>
+                    <span id="modal-stat-posts" class="text-2xl font-black text-white">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast-container" class="fixed bottom-4 right-4 left-4 sm:left-auto z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <script>
+        // Default Sample Data
+        const INITIAL_POSTS = [
+            {
+                id: 'post-1',
+                mediaType: 'image',
+                mediaUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=900&auto=format&fit=crop&q=80',
+                caption: 'Nueva colección visual disponible. Diseño moderno en tonalidades oscuras y doradas. ¿Qué te parece esta combinación?',
+                tags: ['estilo', 'diseño', 'negro-amarillo'],
+                createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+                likes: 38,
+                likedByMe: false,
+                reactions: { '❤️': 18, '🔥': 14, '👏': 5, '😍': 4, '😮': 2 },
+                myReaction: null,
+                comments: [
+                    { id: 'c1', author: 'Cliente_VIP', text: '¡Esa combinación de colores se ve increíble!', createdAt: 'Hace 1 hora' },
+                    { id: 'c2', author: 'Andrea_M', text: 'Excelente estética 🔥', createdAt: 'Hace 30 min' }
+                ]
+            },
+            {
+                id: 'post-2',
+                mediaType: 'image',
+                mediaUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=900&auto=format&fit=crop&q=80',
+                caption: 'Fotografía nocturna en alta resolución. Haz clic en los iconos e ilumínalos para dejar tu reacción.',
+                tags: ['fotografia', 'nocturno', 'arte'],
+                createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
+                likes: 52,
+                likedByMe: true,
+                reactions: { '❤️': 25, '🔥': 20, '👏': 8, '😍': 6, '😮': 1 },
+                myReaction: '🔥',
+                comments: [
+                    { id: 'c3', author: 'Marcos_22', text: '¡Me encanta el resplandor de la imagen!', createdAt: 'Hace 4 horas' }
+                ]
+            }
+        ];
+
+        // State variables
+        let currentRole = 'visitor'; // 'visitor' | 'creator'
+        let posts = [];
+        let selectedMediaType = 'image';
+        let currentShareUrl = '';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPostsFromStorage();
+            switchRole('visitor');
+            lucide.createIcons();
+
+            // Hash Navigation check
+            const hash = window.location.hash;
+            if (hash.startsWith('#post-')) {
+                setTimeout(() => {
+                    const el = document.getElementById(hash.substring(1));
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+            }
+        });
+
+        function loadPostsFromStorage() {
+            const stored = localStorage.getItem('mediafeed_black_yellow_posts');
+            if (stored) {
+                try {
+                    posts = JSON.parse(stored);
+                } catch (e) {
+                    posts = INITIAL_POSTS;
+                }
+            } else {
+                posts = INITIAL_POSTS;
+                savePostsToStorage();
+            }
+            renderFeed();
+            updateStats();
+        }
+
+        function savePostsToStorage() {
+            localStorage.setItem('mediafeed_black_yellow_posts', JSON.stringify(posts));
+            updateStats();
+        }
+
+        function switchRole(role) {
+            currentRole = role;
+            const visitorBtn = document.getElementById('btn-visitor-mode');
+            const creatorBtn = document.getElementById('btn-creator-mode');
+            const creatorNotice = document.getElementById('creator-notice');
+            const newPostNavBtn = document.getElementById('btn-new-post-nav');
+
+            if (role === 'creator') {
+                creatorBtn.className = 'px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 bg-yellowAccent text-black shadow-md transition-all yellow-glow';
+                visitorBtn.className = 'px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 text-gray-400 hover:text-white transition-all';
+                creatorNotice.classList.remove('hidden');
+                newPostNavBtn.classList.remove('hidden');
+                showToast('Modo Creador: Tienes control total', 'info');
+            } else {
+                visitorBtn.className = 'px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 bg-yellowAccent text-black shadow-md transition-all yellow-glow';
+                creatorBtn.className = 'px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 text-gray-400 hover:text-white transition-all';
+                creatorNotice.classList.add('hidden');
+                newPostNavBtn.classList.add('hidden');
+                showToast('Modo Visitante: Reacciona e interactúa libremente', 'info');
+            }
+
+            renderFeed();
+        }
+
+        function renderFeed() {
+            const feedContainer = document.getElementById('posts-feed');
+            const emptyState = document.getElementById('empty-feed-state');
+
+            if (posts.length === 0) {
+                feedContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            feedContainer.innerHTML = posts.map(post => renderPostCard(post)).join('');
+            lucide.createIcons();
+        }
+
+        function renderPostCard(post) {
+            const formattedTime = formatTimeAgo(post.createdAt);
+            const isCreator = currentRole === 'creator';
+
+            const tagsHtml = post.tags && post.tags.length > 0 
+                ? post.tags.map(t => `<span class="text-xs font-bold text-yellowAccent hover:underline cursor-pointer mr-2">#${t}</span>`).join('')
+                : '';
+
+            // Reaction Buttons with White Glow Styling
+            const emojis = ['❤️', '🔥', '👏', '😍', '😮'];
+            const reactionButtons = emojis.map(emoji => {
+                const count = post.reactions && post.reactions[emoji] ? post.reactions[emoji] : 0;
+                const isMyReaction = post.myReaction === emoji;
+                
+                return `
+                    <button onclick="toggleReaction('${post.id}', '${emoji}')" 
+                        class="px-2.5 py-1 rounded-xl text-xs flex items-center space-x-1 border border-darkBorder icon-glow-white ${isMyReaction ? 'bg-white/20 border-white text-white icon-glow-active' : 'bg-black text-gray-300 hover:text-white'}">
+                        <span class="text-sm">${emoji}</span>
+                        <span class="font-black text-[11px] text-yellowAccent">${count}</span>
+                    </button>
+                `;
+            }).join('');
+
+            // Comments List
+            const commentsHtml = post.comments.map(c => `
+                <div class="flex items-start justify-between group py-1 border-b border-darkBorder/40 last:border-0">
+                    <div class="text-xs">
+                        <span class="font-bold text-yellowAccent mr-1.5">${escapeHtml(c.author)}</span>
+                        <span class="text-gray-200">${escapeHtml(c.text)}</span>
+                        <span class="text-[10px] text-gray-500 block mt-0.5">${c.createdAt || 'Reciente'}</span>
+                    </div>
+                    ${isCreator ? `
+                        <button onclick="deleteComment('${post.id}', '${c.id}')" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 p-1 rounded-lg icon-glow-white transition" title="Borrar comentario">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            return `
+                <article id="${post.id}" class="bg-darkCard border border-darkBorder rounded-3xl overflow-hidden shadow-2xl transition-all duration-300">
+                    
+                    <!-- Post Header -->
+                    <div class="p-3.5 sm:p-4 flex items-center justify-between border-b border-darkBorder">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full story-border-yellow p-0.5">
+                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" class="w-full h-full rounded-full object-cover border border-black" alt="Creator">
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="font-extrabold text-xs sm:text-sm text-white">Canal Oficial</span>
+                                    <i data-lucide="badge-check" class="w-3.5 h-3.5 text-yellowAccent"></i>
+                                </div>
+                                <span class="text-[10px] text-gray-400">${formattedTime}</span>
+                            </div>
+                        </div>
+
+                        <!-- Post Actions / Controls -->
+                        <div class="flex items-center space-x-1">
+                            ${isCreator ? `
+                                <button onclick="deletePost('${post.id}')" class="p-2 text-red-400 hover:text-red-300 rounded-xl icon-glow-white" title="Eliminar Post">
+                                    <i data-lucide="trash" class="w-4 h-4"></i>
+                                </button>
+                            ` : ''}
+                            <button onclick="openShareModal('${post.id}')" class="p-2 text-gray-300 hover:text-white rounded-xl icon-glow-white" title="Compartir">
+                                <i data-lucide="share-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Post Media -->
+                    <div class="relative bg-black flex items-center justify-center min-h-[250px] max-h-[520px] overflow-hidden group">
+                        ${post.mediaType === 'video' ? `
+                            <video src="${escapeHtml(post.mediaUrl)}" controls class="w-full max-h-[520px] object-contain"></video>
+                        ` : `
+                            <img src="${escapeHtml(post.mediaUrl)}" class="w-full max-h-[520px] object-cover" alt="Post Media" onerror="this.src='https://placehold.co/800x600/141414/FFE600?text=Imagen+no+disponible'">
+                        `}
+                    </div>
+
+                    <!-- Interactive Action Bar (With Glowing Buttons) -->
+                    <div class="p-3.5 sm:p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2 sm:space-x-3">
+                                
+                                <!-- Like Button with Glow -->
+                                <button onclick="toggleLike('${post.id}')" class="p-2 rounded-xl border border-darkBorder flex items-center space-x-2 icon-glow-white ${post.likedByMe ? 'bg-white/10 border-white text-white icon-glow-active' : 'bg-black text-gray-300'}">
+                                    <i data-lucide="heart" class="w-5 h-5 ${post.likedByMe ? 'fill-yellowAccent text-yellowAccent heart-glow-anim' : 'text-gray-300'}"></i>
+                                    <span class="font-extrabold text-xs text-yellowAccent">${post.likes}</span>
+                                </button>
+
+                                <!-- Comment Icon -->
+                                <button onclick="focusCommentInput('${post.id}')" class="p-2 rounded-xl border border-darkBorder bg-black text-gray-300 flex items-center space-x-1.5 icon-glow-white">
+                                    <i data-lucide="message-circle" class="w-5 h-5 text-gray-300"></i>
+                                    <span class="font-bold text-xs text-white">${post.comments.length}</span>
+                                </button>
+                            </div>
+
+                            <!-- Direct Link Button -->
+                            <button onclick="copyPostDirectLink('${post.id}')" class="p-2 rounded-xl border border-darkBorder bg-black text-xs text-yellowAccent font-bold flex items-center space-x-1 icon-glow-white">
+                                <i data-lucide="link-2" class="w-4 h-4"></i>
+                                <span class="hidden sm:inline">Copiar Enlace</span>
+                            </button>
+                        </div>
+
+                        <!-- Reactions Bar (Illuminated Emojis) -->
+                        <div class="flex items-center space-x-2 overflow-x-auto custom-scrollbar pt-1 pb-1">
+                            ${reactionButtons}
+                        </div>
+
+                        <!-- Caption & Hashtags -->
+                        <div class="space-y-1 pt-1">
+                            <p class="text-xs text-gray-200 leading-relaxed">
+                                <span class="font-black text-yellowAccent mr-1.5">Canal Oficial</span>
+                                ${escapeHtml(post.caption)}
+                            </p>
+                            <div>${tagsHtml}</div>
+                        </div>
+
+                        <!-- Comments Container -->
+                        <div class="pt-3 border-t border-darkBorder space-y-2">
+                            ${post.comments.length > 0 ? `
+                                <div class="space-y-1 max-h-36 overflow-y-auto custom-scrollbar pr-1">
+                                    ${commentsHtml}
+                                </div>
+                            ` : `
+                                <p class="text-[11px] text-gray-500 italic">No hay comentarios aún. ¡Escribe el primero!</p>
+                            `}
+
+                            <!-- Add Comment Form -->
+                            <form onsubmit="handleAddComment(event, '${post.id}')" class="flex items-center space-x-2 pt-2">
+                                <input type="text" id="comment-input-${post.id}" required placeholder="Deja tu comentario..." class="flex-1 bg-black border border-darkBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellowAccent transition">
+                                <button type="submit" class="p-2 bg-yellowAccent hover:bg-yellowHover text-black rounded-xl text-xs font-black transition icon-glow-white yellow-glow">
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function toggleLike(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            post.likedByMe = !post.likedByMe;
+            post.likes += post.likedByMe ? 1 : -1;
+
+            savePostsToStorage();
+            renderFeed();
+        }
+
+        function toggleReaction(postId, emoji) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            if (!post.reactions) post.reactions = {};
+
+            if (post.myReaction === emoji) {
+                post.reactions[emoji] = Math.max(0, (post.reactions[emoji] || 1) - 1);
+                post.myReaction = null;
+            } else {
+                if (post.myReaction && post.reactions[post.myReaction]) {
+                    post.reactions[post.myReaction] = Math.max(0, post.reactions[post.myReaction] - 1);
+                }
+                post.reactions[emoji] = (post.reactions[emoji] || 0) + 1;
+                post.myReaction = emoji;
+            }
+
+            savePostsToStorage();
+            renderFeed();
+        }
+
+        function handleAddComment(e, postId) {
+            e.preventDefault();
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            const newComment = {
+                id: 'c_' + Date.now(),
+                author: currentRole === 'creator' ? 'Creador (Admin)' : 'Cliente_' + Math.floor(100 + Math.random() * 900),
+                text: text,
+                createdAt: 'Hace un momento'
+            };
+
+            post.comments.push(newComment);
+            savePostsToStorage();
+            renderFeed();
+            showToast('Comentario enviado', 'success');
+        }
+
+        function deleteComment(postId, commentId) {
+            if (currentRole !== 'creator') return;
+
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            post.comments = post.comments.filter(c => c.id !== commentId);
+            savePostsToStorage();
+            renderFeed();
+            showToast('Comentario eliminado', 'info');
+        }
+
+        function setMediaType(type) {
+            selectedMediaType = type;
+            const imgBtn = document.getElementById('type-btn-image');
+            const vidBtn = document.getElementById('type-btn-video');
+
+            if (type === 'image') {
+                imgBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-yellowAccent text-black transition';
+                vidBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-gray-400 transition';
+            } else {
+                vidBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-yellowAccent text-black transition';
+                imgBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-gray-400 transition';
+            }
+        }
+
+        function usePresetUrl(url) {
+            document.getElementById('post-media-url').value = url;
+        }
+
+        function handleCreatePost(e) {
+            e.preventDefault();
+            if (currentRole !== 'creator') {
+                showToast('Solo el creador puede publicar', 'error');
+                return;
+            }
+
+            const url = document.getElementById('post-media-url').value.trim();
+            const caption = document.getElementById('post-caption').value.trim();
+            const tagsRaw = document.getElementById('post-tags').value.trim();
+
+            const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : [];
+
+            const newPost = {
+                id: 'post-' + Date.now(),
+                mediaType: selectedMediaType,
+                mediaUrl: url,
+                caption: caption,
+                tags: tags,
+                createdAt: new Date().toISOString(),
+                likes: 0,
+                likedByMe: false,
+                reactions: { '❤️': 0, '🔥': 0, '👏': 0, '😍': 0, '😮': 0 },
+                myReaction: null,
+                comments: []
+            };
+
+            posts.unshift(newPost);
+            savePostsToStorage();
+            renderFeed();
+            closeNewPostModal();
+            document.getElementById('form-new-post').reset();
+            showToast('¡Publicación creada exitosamente!', 'success');
+        }
+
+        function deletePost(postId) {
+            if (currentRole !== 'creator') return;
+
+            posts = posts.filter(p => p.id !== postId);
+            savePostsToStorage();
+            renderFeed();
+            showToast('Publicación eliminada', 'info');
+        }
+
+        function copyChannelLink() {
+            const url = window.location.origin + window.location.pathname;
+            copyToClipboard(url, 'Enlace de la página copiado al portapapeles');
+        }
+
+        function copyPostDirectLink(postId) {
+            const url = `${window.location.origin}${window.location.pathname}#${postId}`;
+            copyToClipboard(url, 'Enlace directo copiado');
+        }
+
+        function openShareModal(postId) {
+            currentShareUrl = `${window.location.origin}${window.location.pathname}#${postId}`;
+            document.getElementById('share-link-input').innerText = currentShareUrl;
+            document.getElementById('modal-share').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('modal-share').classList.add('hidden');
+        }
+
+        function copyCurrentShareLink() {
+            copyToClipboard(currentShareUrl, 'Enlace copiado con éxito');
+            closeShareModal();
+        }
+
+        function copyToClipboard(text, message) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(message, 'success');
+            } catch (err) {
+                showToast('No se pudo copiar el enlace', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function openNewPostModal() {
+            if (currentRole !== 'creator') {
+                showToast('Cambia a Modo Creador arriba para publicar', 'error');
+                return;
+            }
+            document.getElementById('modal-new-post').classList.remove('hidden');
+        }
+
+        function closeNewPostModal() {
+            document.getElementById('modal-new-post').classList.add('hidden');
+        }
+
+        function openStatsModal() {
+            updateStats();
+            document.getElementById('modal-stats').classList.remove('hidden');
+        }
+
+        function closeStatsModal() {
+            document.getElementById('modal-stats').classList.add('hidden');
+        }
+
+        function updateStats() {
+            const totalPosts = posts.length;
+            let totalLikes = 0;
+            let totalComments = 0;
+            let totalReactions = 0;
+
+            posts.forEach(p => {
+                totalLikes += p.likes || 0;
+                totalComments += p.comments ? p.comments.length : 0;
+                if (p.reactions) {
+                    Object.values(p.reactions).forEach(cnt => totalReactions += (cnt || 0));
+                }
+            });
+
+            document.getElementById('stat-posts-count').innerText = totalPosts;
+            document.getElementById('stat-likes-count').innerText = totalLikes;
+            document.getElementById('stat-comments-count').innerText = totalComments;
+
+            document.getElementById('modal-stat-posts').innerText = totalPosts;
+            document.getElementById('modal-stat-likes').innerText = totalLikes;
+            document.getElementById('modal-stat-comments').innerText = totalComments;
+            document.getElementById('modal-stat-reactions').innerText = totalReactions;
+        }
+
+        function focusCommentInput(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            if (input) {
+                input.focus();
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-black text-white border-darkBorder';
+            if (type === 'success') bgClass = 'bg-yellowAccent text-black border-yellowAccent font-bold';
+            if (type === 'error') bgClass = 'bg-red-600 text-white border-red-500';
+
+            toast.className = `${bgClass} border px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center space-x-2 transition-all transform translate-y-2 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4"></i>
+                <span>${escapeHtml(message)}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function formatTimeAgo(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 60) return 'Hace un momento';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `Hace ${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `Hace ${hours}h`;
+            const days = Math.floor(hours / 24);
+            return `Hace ${days}d`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
